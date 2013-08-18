@@ -4,6 +4,9 @@
 #include <cv.h>
 #include <cxcore.h>
 #include <highgui.h>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 
 using namespace std;
@@ -154,11 +157,34 @@ int main( int argc, char** argv )
     namedWindow( "H-S Histogram", 1 );
     imshow( "H-S Histogram", histImg );
 
-	cv::Mat test( 20, 2, DataType<float>::type, 22.23 );
+	cv::Mat test( 3648, 2, DataType<float>::type, 22.23 );
 
-	float val = 33;
+	/*test.at<float>(10,0) = 42.33;
+	
+	float as = test.at<float>(10, 1);
+*/
 
-	float a = test.at<float>(10, 1);
+	std::ifstream infile;
+
+	infile.open("C:\\GitHub\\opencv-compare\\samples\\b1.txt");
+
+	float a, b;
+	int i = 0;
+	if(infile.is_open()){
+		std::string line;
+		while (std::getline(infile, line))
+		{
+			std::istringstream iss(line);
+			//int a, b;
+			if (!(iss >> a >> b)) { 
+				break; 
+			} // error
+			test.at<float>(i,0) = a;
+			test.at<float>(i,1) = b;
+			i++;
+			// process pair (a,b)
+		}
+	}
 
 	cv::Mat my_histogram;
     cv::FileStorage fs("C:\\GitHub\\opencv-compare\\samples\\my_histogram_file.yml", cv::FileStorage::WRITE);
@@ -169,11 +195,5 @@ int main( int argc, char** argv )
 	}
 	fs << "my_histogram" << test;
 	fs.release();
-  
-	cv::FileStorage fs2("test.yml", FileStorage::READ);
-
-
-	FileStorage fs23("C:\\GitHub\\opencv-compare\\samples\\my_histogram_file.yml", FileStorage::READ);
-
-    waitKey();
+    //waitKey();
  }

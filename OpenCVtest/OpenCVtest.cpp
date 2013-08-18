@@ -31,6 +31,59 @@ string ReplaceComma(string line){
 	return line;
  }
 
+Mat GetMatFromFile(string filePath){
+	cv::Mat test(1,2,DataType<float>::type);
+	std::ifstream infile;
+
+	infile.open(filePath);
+
+	bool isStertRead = false, isEndRead = false;
+	float a, b;
+	int i = 0;
+	if(infile.is_open()){
+		std::string line;
+		while (std::getline(infile, line))
+		{
+			if(isStertRead==false && line.find(">>>>>Begin Processed Spectral Data<<<<<")!= std::string::npos){
+				isStertRead = true;
+				continue;
+			}
+			if (isStertRead == true && isEndRead == false){
+				if(isEndRead==false && line.find(">>>>>End Processed Spectral Data<<<<<")!= std::string::npos){
+					isEndRead = true;
+					continue;
+				}
+				line = ReplaceComma(line);
+				std::istringstream iss(line);
+				if (!(iss >> a >> b)) { 
+					break; 
+				} // error
+
+				cv::Mat test2;
+				cv::resize(test,test2,Size(2,i+1));
+				test = test2;
+					//create(i+1,2,DataType<float>::type);
+				test.at<float>(i,0) = a;
+				test.at<float>(i,1) = b;
+				i++;
+				// process pair (a,b)
+			}
+		}
+	}
+
+	cv::Mat my_histogram;
+    cv::FileStorage fs("C:\\GitHub\\opencv-compare\\samples\\my_histogram_file.yml", cv::FileStorage::WRITE);
+	if (!fs.isOpened()) 
+	{
+		std::cout << "unable to open file storage!" << std::endl; 
+		return Mat::zeros(1, 1, DataType<float>::type);
+	}
+	fs << "my_histogram" << test;
+	fs.release();
+
+	return test;
+}
+
 /** @function main */
 int main( int argc, char** argv )
 {
@@ -176,60 +229,23 @@ int main( int argc, char** argv )
     namedWindow( "H-S Histogram", 1 );
     imshow( "H-S Histogram", histImg );
 
-	cv::Mat test(1,2,DataType<float>::type);
+	Mat mat1 = GetMatFromFile("C:\\GitHub\\opencv-compare\\samples\\b1.txt");
+	Mat mat2 = GetMatFromFile("C:\\GitHub\\opencv-compare\\samples\\b2.txt");
+
+	/// Apply the histogram comparison methods
+  for( int i = 0; i < 4; i++ )
+     { int compare_method = i;
+		double self = compareHist( mat1, mat1, compare_method );
+		double comp = compareHist( mat1, mat2, compare_method );
+
+       printf( " Method [%d] Compare : %f, %f \n", i, self, comp );
+     }
+
+  printf( "Done \n" );
 
 	/*test.at<float>(10,0) = 42.33;
 	
 	float as = test.at<float>(10, 1);
 */
-
-	std::ifstream infile;
-
-	infile.open("C:\\GitHub\\opencv-compare\\samples\\b1.txt");
-
-	bool isStertRead = false, isEndRead = false;
-	float a, b;
-	int i = 0;
-	if(infile.is_open()){
-		std::string line;
-		while (std::getline(infile, line))
-		{
-			if(isStertRead==false && line.find(">>>>>Begin Processed Spectral Data<<<<<")!= std::string::npos){
-				isStertRead = true;
-				continue;
-			}
-			if (isStertRead == true && isEndRead == false){
-				if(isEndRead==false && line.find(">>>>>End Processed Spectral Data<<<<<")!= std::string::npos){
-					isEndRead = true;
-					continue;
-				}
-				line = ReplaceComma(line);
-				std::istringstream iss(line);
-				//int a, b;
-				if (!(iss >> a >> b)) { 
-					break; 
-				} // error
-
-				cv::Mat test2;
-				cv::resize(test,test2,Size(2,i+1));
-				test = test2;
-					//create(i+1,2,DataType<float>::type);
-				test.at<float>(i,0) = a;
-				test.at<float>(i,1) = b;
-				i++;
-				// process pair (a,b)
-			}
-		}
-	}
-
-	cv::Mat my_histogram;
-    cv::FileStorage fs("C:\\GitHub\\opencv-compare\\samples\\my_histogram_file.yml", cv::FileStorage::WRITE);
-	if (!fs.isOpened()) 
-	{
-		std::cout << "unable to open file storage!" << std::endl; 
-		return 0;
-	}
-	fs << "my_histogram" << test;
-	fs.release();
     //waitKey();
  }

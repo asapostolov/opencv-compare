@@ -12,6 +12,25 @@
 using namespace std;
 using namespace cv;
 
+
+string ReplaceComma(string line){
+	string search_string =",";
+	int spot = line.find(search_string);
+	if(spot >= 0)
+	{
+		string tmpstring = line.substr(0,spot);
+		tmpstring += ".";
+		tmpstring += line.substr(spot+search_string.length(), line.length());
+		line = tmpstring;
+	}
+	spot = line.find(search_string);
+	if(spot >= 0)
+	{
+		return ReplaceComma(line);
+	}
+	return line;
+ }
+
 /** @function main */
 int main( int argc, char** argv )
 {
@@ -157,7 +176,7 @@ int main( int argc, char** argv )
     namedWindow( "H-S Histogram", 1 );
     imshow( "H-S Histogram", histImg );
 
-	cv::Mat test( 3648, 2, DataType<float>::type, 22.23 );
+	cv::Mat test(1,2,DataType<float>::type);
 
 	/*test.at<float>(10,0) = 42.33;
 	
@@ -168,21 +187,38 @@ int main( int argc, char** argv )
 
 	infile.open("C:\\GitHub\\opencv-compare\\samples\\b1.txt");
 
+	bool isStertRead = false, isEndRead = false;
 	float a, b;
 	int i = 0;
 	if(infile.is_open()){
 		std::string line;
 		while (std::getline(infile, line))
 		{
-			std::istringstream iss(line);
-			//int a, b;
-			if (!(iss >> a >> b)) { 
-				break; 
-			} // error
-			test.at<float>(i,0) = a;
-			test.at<float>(i,1) = b;
-			i++;
-			// process pair (a,b)
+			if(isStertRead==false && line.find(">>>>>Begin Processed Spectral Data<<<<<")!= std::string::npos){
+				isStertRead = true;
+				continue;
+			}
+			if (isStertRead == true && isEndRead == false){
+				if(isEndRead==false && line.find(">>>>>End Processed Spectral Data<<<<<")!= std::string::npos){
+					isEndRead = true;
+					continue;
+				}
+				line = ReplaceComma(line);
+				std::istringstream iss(line);
+				//int a, b;
+				if (!(iss >> a >> b)) { 
+					break; 
+				} // error
+
+				cv::Mat test2;
+				cv::resize(test,test2,Size(2,i+1));
+				test = test2;
+					//create(i+1,2,DataType<float>::type);
+				test.at<float>(i,0) = a;
+				test.at<float>(i,1) = b;
+				i++;
+				// process pair (a,b)
+			}
 		}
 	}
 

@@ -1,5 +1,3 @@
-
-
 #include "stdafx.h"
 #include <cv.h>
 #include <cxcore.h>
@@ -70,17 +68,7 @@ Mat GetMatFromFile(string filePath){
 			}
 		}
 	}
-	/*
-	cv::Mat my_histogram;
-    cv::FileStorage fs("C:\\GitHub\\opencv-compare\\samples\\my_histogram_file.yml", cv::FileStorage::WRITE);
-	if (!fs.isOpened()) 
-	{
-		std::cout << "unable to open file storage!" << std::endl; 
-		return Mat::zeros(1, 1, DataType<float>::type);
-	}
-	fs << "my_histogram" << test;
-	fs.release();*/
-
+	
 	return test;
 }
 

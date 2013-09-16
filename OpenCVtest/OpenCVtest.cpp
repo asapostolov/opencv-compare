@@ -77,6 +77,13 @@ bool isSystemPath(char* text){
 	return string(text)== "." || string(text)=="..";
 }
 
+class FileInfo{
+public: string FileName;
+public: int FileNumber;
+public: string FilePath;
+public: string NewPath;
+};
+
 /** @function main */
 int main( int argc, char** argv )
 {
@@ -96,14 +103,32 @@ int main( int argc, char** argv )
 				DIR *innerDir = opendir(innerPath.c_str());
 
 				struct dirent *innerEntry = readdir(innerDir);
-
+				//tFileInfo files[5];
+				int i = 0;
+				vector<FileInfo> files;
 				while (innerEntry != NULL)
 				{
 					if(!isSystemPath(innerEntry->d_name)){
 						printf("\t%s\n", innerEntry->d_name);
+
+						FileInfo info = FileInfo();
+						info.FileName = string(innerEntry->d_name);
+						info.FileNumber = i;
+						info.FilePath = innerPath + "\\" + info.FileName;
+						info.NewPath = innerPath + "\\" + to_string(info.FileNumber) + ".txt";
+
+						//files.resize(i+1);
+						files.push_back(info);
+						i++;
 					}
 
 					innerEntry = readdir(innerDir);
+				}
+
+				for(int i = 0; i < files.size();i++){
+					FileInfo file = files[i];
+
+					rename(file.FilePath.c_str(), file.NewPath.c_str());
 				}
 			}
 		}

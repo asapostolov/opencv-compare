@@ -102,8 +102,8 @@ public: string NewPath;
 /** @function main */
 int main( int argc, char** argv )
 {
-	string path = "C:\\GitHub\\opencv-compare\\samples\\FluoRatioSpectra";
-	string innerFolderPath = "b2_r";
+	string path = "C:\\GitHub\\opencv-compare\\samples\\reflRatioSpectra";
+	string innerFolderPath = "br_r";
 
 	DIR *dir = opendir(path.c_str());
 
@@ -170,21 +170,7 @@ int main( int argc, char** argv )
 
         entry = readdir(dir);
     }
-
-    //closedir(dir);
- 	Mat mat1 = GetMatFromFile("..\\samples\\FluoRatioSpectra\\ActinicaCeratosa\\b2_r\\0.txt");
-	Mat mat2 = GetMatFromFile("..\\samples\\FluoRatioSpectra\\ActinicaCeratosa\\b2_r\\1.txt");
-
-  /// Apply the histogram comparison methods
-  for( int i = 0; i < 4; i++ ){
-     { int compare_method = i;
-		double self = compareHist( mat1, mat1, compare_method );
-		double comp = compareHist( mat1, mat2, compare_method );
-
-       printf( " Method [%d] Compare : %f, %f \n", i, self, comp );
-     }
-  }
-
+	
   printf( "Done \n" );
   system ("pause");
  }

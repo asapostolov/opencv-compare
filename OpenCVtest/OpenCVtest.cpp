@@ -37,35 +37,29 @@ Mat GetMatFromFile(string filePath){
 	infile.open(filePath);
 
 	bool isStertRead = false, isEndRead = false;
-	float a, b;
+	float a;
 	int i = 0;
 	if(infile.is_open()){
 		std::string line;
 		while (std::getline(infile, line))
 		{
-			if(isStertRead==false && line.find(">>>>>Begin Processed Spectral Data<<<<<")!= std::string::npos){
+			if(isStertRead==false && line.find("D:\\")!= std::string::npos){
 				isStertRead = true;
 				continue;
 			}
 			if (isStertRead == true && isEndRead == false){
-				if(isEndRead==false && line.find(">>>>>End Processed Spectral Data<<<<<")!= std::string::npos){
-					isEndRead = true;
-					continue;
-				}
 				line = ReplaceComma(line);
 				std::istringstream iss(line);
-				if (!(iss >> a >> b)) { 
+				if (!(iss >> a )) { 
 					break; 
 				} // error
 
 				cv::Mat test2;
-				cv::resize(test,test2,Size(2,i+1));
+				cv::resize(test,test2,Size(1,i+1));
 				test = test2;
-					//create(i+1,2,DataType<float>::type);
 				test.at<float>(i,0) = a;
-				test.at<float>(i,1) = b;
+				
 				i++;
-				// process pair (a,b)
 			}
 		}
 	}
@@ -136,10 +130,9 @@ int main( int argc, char** argv )
         entry = readdir(dir);
     }
 
-    closedir(dir);
-
- 	Mat mat1 = GetMatFromFile("..\\samples\\b1.txt");
-	Mat mat2 = GetMatFromFile("..\\samples\\b2.txt");
+    //closedir(dir);
+ 	Mat mat1 = GetMatFromFile("..\\samples\\FluoRatioSpectra\\ActinicaCeratosa\\b2_r\\0.txt");
+	Mat mat2 = GetMatFromFile("..\\samples\\FluoRatioSpectra\\ActinicaCeratosa\\b2_r\\1.txt");
 
   /// Apply the histogram comparison methods
   for( int i = 0; i < 4; i++ )

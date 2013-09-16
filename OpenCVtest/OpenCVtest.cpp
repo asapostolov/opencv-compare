@@ -67,6 +67,27 @@ Mat GetMatFromFile(string filePath){
 	return test;
 }
 
+std::string string_format(const std::string fmt, ...) {
+    int size = 100;
+    std::string str;
+    va_list ap;
+    while (1) {
+        str.resize(size);
+        va_start(ap, fmt);
+        int n = vsnprintf((char *)str.c_str(), size, fmt.c_str(), ap);
+        va_end(ap);
+        if (n > -1 && n < size) {
+            str.resize(n);
+            return str;
+        }
+        if (n > -1)
+            size = n + 1;
+        else
+            size *= 2;
+    }
+    return str;
+}
+
 bool isSystemPath(char* text){
 	return string(text)== "." || string(text)=="..";
 }
@@ -91,19 +112,19 @@ int main( int argc, char** argv )
     while (entry != NULL)
     {
         if (entry->d_type == DT_DIR){
-            printf("%s\n", entry->d_name);
-			if(!isSystemPath(entry->d_name)){
+           	if(!isSystemPath(entry->d_name)){
 				string innerPath  = path +"\\"+ string(entry->d_name) + "\\" + innerFolderPath;
+				
 				DIR *innerDir = opendir(innerPath.c_str());
-
 				struct dirent *innerEntry = readdir(innerDir);
-				//tFileInfo files[5];
+				printf("Processing %s ....\n\n", entry->d_name);
 				int i = 0;
 				vector<FileInfo> files;
+				
 				while (innerEntry != NULL)
 				{
 					if(!isSystemPath(innerEntry->d_name)){
-						printf("\t%s\n", innerEntry->d_name);
+						
 
 						FileInfo info = FileInfo();
 						info.FileName = string(innerEntry->d_name);
@@ -111,18 +132,38 @@ int main( int argc, char** argv )
 						info.FilePath = innerPath + "\\" + info.FileName;
 						info.NewPath = innerPath + "\\" + to_string(info.FileNumber) + ".txt";
 
-						//files.resize(i+1);
 						files.push_back(info);
 						i++;
 					}
-
 					innerEntry = readdir(innerDir);
 				}
+				
+				std::ofstream fs(innerPath+"\\result.txt");
+				fs<<string(entry->d_name)<<"\n";
 
 				for(int i = 0; i < files.size();i++){
 					FileInfo file = files[i];
 
 					rename(file.FilePath.c_str(), file.NewPath.c_str());
+					fs<<file.FileNumber<<" -- "<<file.FileName<<"\n";
+				}
+				fs<<"\n";
+				fs<<"comp\tCorrelation\tChi-square\tIntersection\tBhattacharyya\n";
+
+				for(int i = 0; i < files.size();i++){
+					FileInfo firstFile = files[i];
+					for(int j = 0; j < files.size();j++){
+						FileInfo secondFile = files[j];
+						Mat mat1 = GetMatFromFile(firstFile.NewPath);
+						Mat mat2 = GetMatFromFile(secondFile.NewPath);
+
+						fs<<string_format( " %d-%d:\t%f\t%f\t%f\t%f \n", firstFile.FileNumber, secondFile.FileNumber, 
+																		compareHist( mat1, mat2, 0 ),
+																		compareHist( mat1, mat2, 1 ),
+																		compareHist( mat1, mat2, 2 ),
+																		compareHist( mat1, mat2, 3 )
+																		);
+					}
 				}
 			}
 		}
@@ -135,13 +176,14 @@ int main( int argc, char** argv )
 	Mat mat2 = GetMatFromFile("..\\samples\\FluoRatioSpectra\\ActinicaCeratosa\\b2_r\\1.txt");
 
   /// Apply the histogram comparison methods
-  for( int i = 0; i < 4; i++ )
+  for( int i = 0; i < 4; i++ ){
      { int compare_method = i;
 		double self = compareHist( mat1, mat1, compare_method );
 		double comp = compareHist( mat1, mat2, compare_method );
 
        printf( " Method [%d] Compare : %f, %f \n", i, self, comp );
      }
+  }
 
   printf( "Done \n" );
   system ("pause");

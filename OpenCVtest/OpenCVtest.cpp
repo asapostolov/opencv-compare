@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <dirent.h>
 
 
 using namespace std;
@@ -72,9 +73,46 @@ Mat GetMatFromFile(string filePath){
 	return test;
 }
 
+bool isSystemPath(char* text){
+	return string(text)== "." || string(text)=="..";
+}
+
 /** @function main */
 int main( int argc, char** argv )
 {
+	string path = "C:\\GitHub\\opencv-compare\\samples\\FluoRatioSpectra";
+	string innerFolderPath = "b2_r";
+
+	DIR *dir = opendir(path.c_str());
+
+    struct dirent *entry = readdir(dir);
+
+    while (entry != NULL)
+    {
+        if (entry->d_type == DT_DIR){
+            printf("%s\n", entry->d_name);
+			if(!isSystemPath(entry->d_name)){
+				string innerPath  = path +"\\"+ string(entry->d_name) + "\\" + innerFolderPath;
+				DIR *innerDir = opendir(innerPath.c_str());
+
+				struct dirent *innerEntry = readdir(innerDir);
+
+				while (innerEntry != NULL)
+				{
+					if(!isSystemPath(innerEntry->d_name)){
+						printf("\t%s\n", innerEntry->d_name);
+					}
+
+					innerEntry = readdir(innerDir);
+				}
+			}
+		}
+
+        entry = readdir(dir);
+    }
+
+    closedir(dir);
+
  	Mat mat1 = GetMatFromFile("..\\samples\\b1.txt");
 	Mat mat2 = GetMatFromFile("..\\samples\\b2.txt");
 

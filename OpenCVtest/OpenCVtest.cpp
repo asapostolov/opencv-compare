@@ -99,6 +99,46 @@ public: string FilePath;
 public: string NewPath;
 };
 
+void SaveFile(vector<FileInfo> files, string path, string folderName,  int method, string methodName){
+	vector<vector<string>> table;
+
+	vector<string> topRow;
+	topRow.push_back("x\t");
+	for(int i = 0; i < files.size();i++){
+		FileInfo file = files[i];
+		topRow.push_back(string_format("%d\t",file.FileNumber));
+	}
+	table.push_back(topRow);
+	for(int i = 0; i < files.size(); i++){
+		FileInfo filei = files[i];
+		vector<string> rowi;
+		rowi.push_back(string_format("%d\t",filei.FileNumber));
+		for(int j = 0; j < files.size();j++){
+			FileInfo filej = files[j];
+			if( i > j )  {
+				rowi.push_back("-\t");
+				continue;
+			}
+			Mat mat1 = GetMatFromFile(filei.NewPath);
+			Mat mat2 = GetMatFromFile(filej.NewPath);
+
+			rowi.push_back(string_format("%f\t",compareHist( mat1, mat2, method )));
+		}
+		table.push_back(rowi);
+	}
+	std::ofstream fs(path+"\\.result."+methodName+".txt");
+	fs<<folderName<<"\n";
+	for(int i = 0; i < table.size();i++){
+		vector<string> row = table[i];
+		for(int j = 0; j < row.size();j++){
+			string cell = row[j];
+			
+			fs<<cell;
+		}
+		fs<<"\n";
+	}
+}
+
 /** @function main */
 int main( int argc, char** argv )
 {
@@ -137,34 +177,20 @@ int main( int argc, char** argv )
 					}
 					innerEntry = readdir(innerDir);
 				}
-				
-				std::ofstream fs(innerPath+"\\result.txt");
-				fs<<string(entry->d_name)<<"\n";
-
+				string folderName = string(entry->d_name);
+				std::ofstream fs(innerPath+"\\.result..legend.txt");
+				fs<<folderName<<"\n";
 				for(int i = 0; i < files.size();i++){
 					FileInfo file = files[i];
-
 					rename(file.FilePath.c_str(), file.NewPath.c_str());
 					fs<<file.FileNumber<<" -- "<<file.FileName<<"\n";
 				}
 				fs<<"\n";
-				fs<<"comp\tCorrelation\tChi-square\tIntersection\tBhattacharyya\n";
 
-				for(int i = 0; i < files.size();i++){
-					FileInfo firstFile = files[i];
-					for(int j = 0; j < files.size();j++){
-						FileInfo secondFile = files[j];
-						Mat mat1 = GetMatFromFile(firstFile.NewPath);
-						Mat mat2 = GetMatFromFile(secondFile.NewPath);
-
-						fs<<string_format( " %d-%d:\t%f\t%f\t%f\t%f \n", firstFile.FileNumber, secondFile.FileNumber, 
-																		compareHist( mat1, mat2, 0 ),
-																		compareHist( mat1, mat2, 1 ),
-																		compareHist( mat1, mat2, 2 ),
-																		compareHist( mat1, mat2, 3 )
-																		);
-					}
-				}
+				SaveFile(files,innerPath,folderName,0,"Correlation");
+				SaveFile(files,innerPath,folderName,1,"Chi-square");
+				SaveFile(files,innerPath,folderName,2,"Intersection");
+				SaveFile(files,innerPath,folderName,3,"Bhattacharyya");
 			}
 		}
 
@@ -172,5 +198,5 @@ int main( int argc, char** argv )
     }
 	
   printf( "Done \n" );
-  system ("pause");
+  system("pause");
  }
